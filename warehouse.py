@@ -39,6 +39,17 @@ class Item:
 
     def __str__(self) -> str:
         return f"Товар: {self.name} | Ціна: {self.price} грн | Зона: {self.zone.value}"
+    
+    def __enter__(self):
+        print(f"\n[Edit Mode] Відкрито безпечний режим редагування для: {self.name}")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            print(f"[Edit Mode] Зміни успішно збережено!")
+        else:
+            print(f"[Edit Mode] Редагування скасовано через помилку: {exc_val}")
+        return False
 
 class PerishableItem(Item):
     def __init__(self, name: str, price: float, zone: StorageZone, expiry: ExpiryDate):
@@ -130,6 +141,28 @@ class Warehouse:
     def add_item(self, item: Item):
         self._items.append(item)
         print(f"[Success] Товар '{item.name}' успішно додано на склад!")
+
+    def search_item(self, query: str):
+        return [item for item in self._items if query.lower() in item.name.lower()]
+
+    def sort_items_by_price(self):
+        if not self._items:
+            print("[Info] Склад порожній, сортувати нічого.")
+            return
+        self._items.sort(key=lambda x: x.price)
+        print("[Success] Інвентар успішно відсортовано за зростанням ціни.")
+
+    def filter_cold_zone(self):
+        iterator = ColdZoneIterator(self._items)
+        results = list(iterator)
+        
+        if not results:
+            print("[Info] У холодильній зоні немає товарів.")
+        else:
+            print("\n--- ТОВАРИ В ХОЛОДИЛЬНІЙ ЗОНІ ---")
+            for item in results:
+                print(item)
+            print("---------------------------------")
 
     def display_all(self):
         if not self._items:
